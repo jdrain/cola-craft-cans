@@ -139,12 +139,48 @@ def ibu():
     new_data["ibu_level"] = named
     return
 
+#%% Merge
+    
+def merge():
+    
+    
+    newids = []
+    ids = beers['id']
+    for i in ids:
+        newids.append(i)
+    
+    
+    newstyles = []
+    styles = beers['style']
+    for i in styles:
+        newstyles.append(i)
+        
+    new_data['style'] = newstyles
+    
+    
+    states = []
+    brewstates = breweries['state']
+    brewids = beers['brewery_id']
+    for brewid in brewids:
+        states.append(brewstates[brewid])
+    
+    print states
+    new_data['states'] = states
+    
+    
+    
+    
+    discretize_abv()
+    ibu()
+    pd.DataFrame(index=beers['name'], data=new_data).to_csv(path_or_buf='./discretized_data.csv')
+    
+    return
+
 #%% Data
 beers = pd.read_csv('../beers.csv')
 breweries = pd.read_csv('../breweries.csv')
 new_data = {}
 
 #%% Write to csv
-discretize_abv()
-ibu()
-pd.DataFrame(index=beers['name'], data=new_data).to_csv(path_or_buf='./discretized_data.csv')
+merge()
+
