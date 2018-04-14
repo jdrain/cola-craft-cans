@@ -160,11 +160,15 @@ def merge():
     
     states = []
     brewstates = breweries['state']
+    brewnames = []
+    brewerynames = breweries['name']
     brewids = beers['brewery_id']
     for brewid in brewids:
         states.append(brewstates[brewid])
+        brewnames.append(brewerynames[brewid])
     
     print states
+    new_data['brewery_names'] = brewnames
     new_data['states'] = states
     
     
