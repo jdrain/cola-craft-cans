@@ -71,6 +71,74 @@ def discretize_abv():
     
     return
 
+#%% IBU
+    
+def ibu():
+    ibus = beers['ibu']
+    
+    # Discretizing
+    binned = []
+    bin_names = ["none", "low", "med", "high"]
+    named = []
+    zeros = 0
+    for i in range(len(ibus)):
+        if ibus[i]=="":
+            print True
+        if ibus[i] <= 25:
+            binned.append(1)
+            named.append(bin_names[1])
+        else:
+            if ibus[i] <= 53:
+                binned.append(2)
+                named.append(bin_names[2])
+            else:
+                if ibus[i] <= 138: # max ibu is 138
+                    binned.append(3)
+                    named.append(bin_names[3])
+                else:
+                    binned.append(0)
+                    named.append(bin_names[0])
+
+   
+    # Counting Items in each bin
+    ones = 0
+    twos = 0
+    threes = 0
+    for abv in binned:
+        if abv == 0:
+            zeros +=1
+        else: 
+            if abv == 1:
+                ones += 1
+            else:
+                if abv == 2:
+                    twos += 1
+                else:
+                    if abv == 3:
+                        threes += 1
+    
+    print named
+    print "Zeros:",zeros
+    print "____________________\n"
+    
+    
+    # Number of budgets in each bin
+    print "Ones: ",ones
+    print "Twos:",twos
+    print "Threes:",threes
+    bins = [0, 1, 2, 3]
+    
+    # Bar Graph
+    X = range(len(bins))
+    Y = [binned.count(bins[x]) for x in X]
+    plt.bar(X,Y)
+    plt.xticks(X, bin_names)
+    plt.show
+    
+    # Writing Data
+    new_data["ibu_level"] = named
+    return
+
 #%% Data
 beers = pd.read_csv('../beers.csv')
 breweries = pd.read_csv('../breweries.csv')
@@ -78,4 +146,5 @@ new_data = {}
 
 #%% Write to csv
 discretize_abv()
+ibu()
 pd.DataFrame(index=beers['name'], data=new_data).to_csv(path_or_buf='./discretized_data.csv')
