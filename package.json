@@ -1,0 +1,22 @@
+{
+  "name": "cola-craft-cans",
+  "version": "1.0.0",
+  "description": "repo for colahacks project",
+  "main": "example_script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jdrain/cola-craft-cans.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jdrain/cola-craft-cans/issues"
+  },
+  "homepage": "https://github.com/jdrain/cola-craft-cans#readme",
+  "dependencies": {
+    "mongodb": "^3.0.6"
+  }
+}
