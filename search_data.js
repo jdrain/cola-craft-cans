@@ -20,19 +20,44 @@ MongoClient.connect(url, function(err, db) {
      var beers = dbobj.collection("beers");
      beers.find({
 	     name: query
-         })
+      })
 	 .toArray()
          .then( (res, err) => {
 	      assert.equal(null, err);
               console.log(res[0]);
 	      var data = res[0];
 	      var obj = {
-		  "abv_level": data.abv_level,
-		  "brewery_names": data.brewery_names,
-		  "ibu_level": data.ibu_level,
-		  "states": data.states
-	      }
+		      "abv_level": data.abv_level,
+		      "brewery_names": data.brewery_names,
+		      "ibu_level": data.ibu_level,
+		      "states": data.states
+        }.then( (word) {
+
+          for (var i = 0; i < word.size; i++) {
+            beer = word[i];
+            var weight = 0;
+            if (obj.abv_level == beer.abv_level) {
+              weight++;
+            }
+            if (obj.brewery_names == beer.brewery_names) {
+              weight++;
+            }
+            if (obj.ibu_level == beer.ibu_level) {
+              weight++;
+            }
+            if (obj.states == beer.states) {
+              weight++;
+            }
+          }
+
+        });
+
+
+        
+
 	      console.log(obj)
               db.close(); 
          });
+
+    
 });
