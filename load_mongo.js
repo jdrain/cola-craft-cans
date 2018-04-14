@@ -4,6 +4,13 @@
 
 var MongoClient = require('mongodb').MongoClient
   , assert = require('assert');
+var query = process.argv[2];
+var fs = require("fs");
+
+var rawjson = JSON.parse(fs.readFileSync("./convertcsv.json"));
+rawjson.forEach( (item) => {
+	console.log(item)
+});
 
 // Connection URL
 var url = 'mongodb://localhost:27017';
@@ -14,9 +21,9 @@ MongoClient.connect(url, function(err, db) {
   
      var dbobj = db.db("beerdata");
      var beers = dbobj.collection("beers");
-     beers.find({}).toArray( (err, res) => {
-	  assert.equal(null, err);
-	  console.log(JSON.stringify(res, null, 2));
+     beers.insertMany(rawjson).then( (res, err) => {
+         assert.equal(null, err);
+	 console.log(JSON.stringify(res, null, 2));
+	 db.close(); 
      });
-     db.close();
 });
