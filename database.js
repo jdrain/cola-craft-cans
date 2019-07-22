@@ -17,6 +17,7 @@ const sprintf = require("sprintf-js").sprintf;
 // put this in a separate string formatting file
 const queryStrings = {
     "getBreweriesByStateQueryString": "SELECT brewery_id,name,city,state FROM breweries WHERE state IN (%s);",
+    "getAllBreweries": "SELECT brewery_id,name,city,state FROM breweries;",
     "getBeersQueryString": "<getBeersQueryString>"
 }
 
@@ -68,29 +69,37 @@ module.exports = {
      */
     getBreweriesByState: function(states, callback) {
         
-        if (!this.activeDatabasePool) {
-            callback({"err": "No database pool initialized. Please call initializeDatabasePool()."});
-            return;
-        }
-
+        this.initializeDatabasePool();
         var statesQueryString = this.getBreweriesByStateQueryString(states);
-        console.log(statesQueryString);
         this.activeDatabasePool.query(statesQueryString, (err, res) => {
                 if (err) {
                     callback(err);
                 }
-                else {
-                    callback(res);
+                else if (res.rows) {
+                    callback(res.rows);
                 }
             }
         );
     },
 
     /**
+     * Get all the breweries we have in the database
+     */
+    getAllBreweries: function(callback) {
+        this.initializeDatabasePool();
+        this.activeDatabasePool.query(queryStrings.getAllBreweries, (err, res) => {
+            if (err) {
+                callback(err);
+            } else if (res.rows) {
+                callback(res.rows);
+            }
+        })
+    },
+
+    /**
      * Get a list of beers based on given params.
      * 
      * @param {list} selectedIbuLevels: Collection of IBU level strings.
-     * @param {list} selectedStates: Collection of State strings. This won't be necessary if we're filtering breweries based on this at the UI level
      * @param {list} selectedBreweries: Collection of brewery ids.
      * @param {function} callback: Do something with the result of the query 
      */

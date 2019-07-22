@@ -1,21 +1,11 @@
 import React, { Component } from 'react';
 import Select from 'react-select';
 import './App.css';
+const axios = require('axios');
+const selectOptions = require('./selectOptions');
 
-// Options:
-//  TODO: These should come from the database
-const ibuSelectOptions = [
-  { value: 'low', label: 'Low' },
-  { value: 'med', label: 'Medium' },
-  { value: 'high', label: 'High'}
-];
-
-const stateSelectOptions = [
-  { value: "SC", label: "South Carolina" },
-  { value: "NC", label: "North Carolina" },
-  { value: "WI", label: "Wisconsin" },
-  { value: "CA", label: "California" }
-]
+const ibuSelectOptions = selectOptions.ibuSelectOptions;
+const stateSelectOptions = selectOptions.stateSelectOptions;
 
 // Styles
 const wrapperDivStyles = {
@@ -29,38 +19,125 @@ const selectContainerDivStyles = {
 }
 
 class App extends Component {
+  brewerySelectOptions = [];
+
   state = {
     ibuSelectedOption: null,
-    stateSelectedOption: null
+    stateSelectedOption: null,
+    brewerySelectedOption: null,
+    brewerySelectOptions: null
   };
 
-  handleIbuChange = ibuSelectedOption => {
+  handleSelectedIbuChange = ibuSelectedOption => {
     this.setState({ ibuSelectedOption });
   };
 
-  handleStateChange = stateSelectedOption => {
+  handleSelectedStateChange = stateSelectedOption => {
     this.setState({ stateSelectedOption });
   };
 
+  handleSelectedBreweryChange = brewerySelectedOption => {
+    this.setState({ brewerySelectedOption });
+  };
+
+  /**
+   * Methods to communicate with the backend
+   */
+  getAllBreweriesFromServer = () => {
+    return axios({
+      method: "get",
+      url: "http://localhost:8080/api/getAllBreweries/"
+    })
+  }
+
+  getBreweriesByStateFromServer = () => {
+    return axios({
+      method: "post",
+      url: "http://localhost:8080/api/getBreweriesByState/",
+      data: { 
+        statesToCheck: this.getSelectedStatesArray() 
+      }
+    })
+  }
+
+  getSelectedStatesArray = () => {
+    var selectedStatesArray = [];
+    if (this.state.stateSelectedOption) {
+      for (var i=0; i < this.state.stateSelectedOption.length; i++) {
+        selectedStatesArray.push(this.state.stateSelectedOption[i].value);
+      }
+    }
+    return selectedStatesArray;
+  };
+
+  updateBrewerySelectOptions = (breweryData) => {
+    var breweryOptions = []
+    for (var i=0; i < breweryData.length; i++) {
+      breweryOptions.push({ 
+        value: breweryData[i].brewery_id,
+        label: breweryData[i].name
+      })
+    }
+    this.setState({ 
+      brewerySelectOptions: breweryOptions
+    });
+  }
+
+  /** 
+   * Lifecycle methods 
+   */
+  componentDidMount() {
+    this.getAllBreweriesFromServer()
+      .then((response) => {
+        this.updateBrewerySelectOptions(response.data);
+      })
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.stateSelectedOption !== prevState.stateSelectedOption) {
+      this.getBreweriesByStateFromServer()
+        .then((response)=> {
+          console.log(response);
+          this.updateBrewerySelectOptions(response.data);
+        })
+    }
+  }
+
   render() {
-    const { ibuSelectedOption, stateSelectedOption } = this.state;
+    const { 
+      ibuSelectedOption, 
+      stateSelectedOption, 
+      brewerySelectedOption,
+      brewerySelectOptions
+    } = this.state;
 
     return (
       <div className="App" style={wrapperDivStyles}>
         <div style={selectContainerDivStyles}>
           <Select 
             className="ibuSelect"
+            isMulti={true}
             value={ibuSelectedOption}
-            onChange={this.handleIbuChange}
+            onChange={this.handleSelectedIbuChange}
             options={ibuSelectOptions}
           />
         </div>
         <div style={selectContainerDivStyles}>
           <Select
             className="stateSelect"
+            isMulti={true}            
             value={stateSelectedOption}
-            onChange={this.handleStateChange}
+            onChange={this.handleSelectedStateChange}
             options={stateSelectOptions}
+          />
+        </div>
+        <div style={selectContainerDivStyles}>
+          <Select
+            className="brewerySelect"
+            isMulti={true}           
+            value={brewerySelectedOption}
+            onChange={this.handleSelectedBreweryChange}
+            options={brewerySelectOptions}
           />
         </div>
       </div>
