@@ -14,80 +14,70 @@ import Typography from '@material-ui/core/Typography';
 import './App.css';
 const axios = require('axios');
 const selectOptions = require('./selectOptions');
-const ibuSelectOptions = selectOptions.ibuSelectOptions;
+const abvLevelSelectOptions = selectOptions.abvLevelSelectOptions;
 const stateSelectOptions = selectOptions.stateSelectOptions;
 
 // Styles
-const wrapperDivStyles = {
-  display: "flex",
-  padding: '15px',
-  width: "80%",
-  margin: "auto"
-}
-
-const selectContainerDivStyles = {
-  flex: 1,
-  paddingLeft: '10px',
-  paddingRight: '10px'
-}
-
-const labelStyles = {
-  display: 'block',
-  textAlign: 'left'
-}
-
-const paperStyles = {
-  margin: '20px'
-}
-
-const searchButtonContainerStyles = {
-  width: '80%',
-  margin: 'auto',
-  paddingRight: '20px',
-  paddingTop: '10px',
-  paddingBottom: '10px'
-}
-
-const searchButtonStyles = {
-  display: 'block',
-  marginLeft: 'auto',
-  marginRight: 0
-}
-
-const beerCardStyles = {
-  minWidth: '100px',
-  height: 'auto',
-  margin: '15px'
-}
-
-const aboutStyles = {
-  marginLeft: 'auto',
-  marginRight: 0
+const styles = {
+  wrapperDiv: {
+    display: "flex",
+    padding: '15px',
+    width: "80%",
+    margin: "auto"
+  },
+  selectContainerDiv: {
+    flex: 1,
+    paddingLeft: '10px',
+    paddingRight: '10px'
+  },
+  label: {
+    display: 'block',
+    textAlign: 'left'
+  },
+  paper: {
+    margin: '20px'
+  },
+  searchButtonContainer: {
+    width: '80%',
+    margin: 'auto',
+    paddingRight: '20px',
+    paddingTop: '10px',
+    paddingBottom: '10px'
+  },
+  searchButton: {
+    display: 'block',
+    marginLeft: 'auto',
+    marginRight: 0
+  },
+  beerCard: {
+    minWidth: '100px',
+    height: 'auto',
+    margin: '15px'
+  },
+  about: {
+    marginLeft: 'auto',
+    marginRight: 0
+  }
 }
 
 class App extends Component {
   brewerySelectOptions = [];
 
   state = {
-    ibuSelectedOption: null,
+    abvLevelSelectedOption: null,
     stateSelectedOption: null,
     brewerySelectedOption: null,
     brewerySelectOptions: null,
     queryInProgress: false,
-    isAboutPopoverOpen: false,
+    popoverAnchorEl: null,
     beersReturnedFromQuery: null
   };
 
   /**
-   * Globals
-   */
-  queryInProgress = false;
-
-  /**
    * Event handlers
    */
-  handleSelectedIbuChange = ibuSelectedOption => {
-    this.setState({ ibuSelectedOption });
+  handleSelectedAbvLevelChange = abvLevelSelectedOption => {
+    this.setState({ abvLevelSelectedOption });
   };
 
   handleSelectedStateChange = stateSelectedOption => {
@@ -99,7 +89,7 @@ class App extends Component {
   };
 
   handleSearchButtonClick = () => {
-    if (!this.state.brewerySelectedOption && !this.state.ibuSelectedOption && !this.state.stateSelectedOption) {
+    if (!this.state.brewerySelectedOption && !this.state.abvLevelSelectedOption && !this.state.stateSelectedOption) {
       alert("Please select at least one search criteria");
       return;
     }
@@ -116,11 +106,10 @@ class App extends Component {
       })
   }
 
-  handleAboutClick = () => {
-    console.log(this.state.isAboutPopoverOpen);
+  togglePopover = (event) => {
     this.setState({
-      isAboutPopoverOpen: !this.state.isAboutPopoverOpen
-    })
+      popoverAnchorEl: this.state.popoverAnchorEl ? null : event.target
+    });
   }
 
   /**
@@ -173,24 +162,18 @@ class App extends Component {
   }
 
   getSelectedStatesArray = () => {
-    if (this.state.stateSelectedOption) {
-      return this.state.stateSelectedOption.map((option) => option.value)
-    }
-    return [];
+    return !this.state.stateSelectedOption ? [] : 
+      this.state.stateSelectedOption.map((option) => option.value)
   }
 
   getSelectedAbvLevelsArray = () => {
-    if (this.state.ibuSelectedOption) {
-      return this.state.ibuSelectedOption.map((option) => option.value)
-    }
-    return []
+    return !this.state.abvLevelSelectedOption ? [] : 
+      this.state.abvLevelSelectedOption.map((option) => option.value)
   }
 
   getSelectedBreweriesArray = () => {
-    if (this.state.brewerySelectedOption) {
-      return this.state.brewerySelectedOption.map((option) => option.value)
-    }
-    return []
+    return !this.state.brewerySelectedOption ? [] : 
+      this.state.brewerySelectedOption.map((option) => option.value)
   }
 
   updateBrewerySelectOptions = (breweryData) => {
@@ -210,7 +193,7 @@ class App extends Component {
       if (!this.state.beersReturnedFromQuery) return null;
       return this.state.beersReturnedFromQuery.map((beer) => {
         return <GridListTile cols={1} key={beer.beer_id}>
-          <Card style={beerCardStyles}> 
+          <Card style={styles.beerCard}> 
                 <CardContent className='BeerCardContent'>
                     <Typography variant='h5'>{beer.beerName}</Typography>
                     <Typography>{beer.breweryName}</Typography>
@@ -246,7 +229,6 @@ class App extends Component {
     if (this.state.stateSelectedOption !== prevState.stateSelectedOption) {
       this.getBreweriesByStateFromServer()
         .then((response)=> {
-          console.log(response);
           this.updateBrewerySelectOptions(response.data);
         })
     }
@@ -255,7 +237,7 @@ class App extends Component {
   render() {
 
     const { 
-      ibuSelectedOption, 
+      abvLevelSelectedOption, 
       stateSelectedOption, 
       brewerySelectedOption,
       brewerySelectOptions
@@ -270,32 +252,43 @@ class App extends Component {
               Beer Recommendation Engine
             </Typography>
             <Typography 
-              style={aboutStyles} 
+              style={styles.about} 
               variant="h6" 
               color="inherit"
-              onClick={this.handleAboutClick}>
+              onClick={this.togglePopover}>
               About </Typography>
-            <Popover open={this.state.isAboutPopoverOpen}>
+            <Popover 
+              open={this.state.popoverAnchorEl ? true : false}
+              anchorEl={this.state.popoverAnchorEl}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'center',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'center',
+              }}
+              onClose={this.togglePopover}>
               <Typography> The about section </Typography>
             </Popover>
           </Toolbar>
         </AppBar>
 
-        <Paper style={paperStyles}>
-          <div style={wrapperDivStyles}>
-            <div style={selectContainerDivStyles}>
-              <label style={labelStyles}>IBU Level</label>
+        <Paper style={styles.paper}>
+          <div style={styles.wrapperDiv}>
+            <div style={styles.selectContainerDiv}>
+              <label style={styles.label}>ABV Level</label>
               <Select 
-                className="ibuSelect"
+                className="abvSelect"
                 isMulti={true}
-                value={ibuSelectedOption}
-                onChange={this.handleSelectedIbuChange}
-                options={ibuSelectOptions}
+                value={abvLevelSelectedOption}
+                onChange={this.handleSelectedAbvLevelChange}
+                options={abvLevelSelectOptions}
               />
             </div>
-            <div style={selectContainerDivStyles}>
+            <div style={styles.selectContainerDiv}>
               <div>
-                <label style={labelStyles}>State</label>
+                <label style={styles.label}>State</label>
               </div>
               <div>
                 <Select
@@ -307,8 +300,8 @@ class App extends Component {
                 />
               </div>
             </div>
-            <div style={selectContainerDivStyles}>
-              <label style={labelStyles}>Brewery</label>
+            <div style={styles.selectContainerDiv}>
+              <label style={styles.label}>Brewery</label>
               <Select
                 className="brewerySelect"
                 isMulti={true}           
@@ -318,17 +311,17 @@ class App extends Component {
               />
             </div>
           </div>
-          <div style={searchButtonContainerStyles}>
+          <div style={styles.searchButtonContainer}>
             <Button 
               className="searchButton"
               variant="contained"
               color="primary"
-              style={searchButtonStyles}
+              style={styles.searchButton}
               onClick={this.handleSearchButtonClick}>Search</Button>
           </div>
         </Paper>
 
-        <Paper style={paperStyles}>
+        <Paper style={styles.paper}>
           { 
             this.state.queryInProgress ? <CircularProgress size={100} disableShrink={true}/> :
               this.getGridList(this.getQueryResultTiles())

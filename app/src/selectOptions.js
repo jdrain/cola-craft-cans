@@ -3,7 +3,7 @@
 module.exports = {
     
     // ibu level
-    ibuSelectOptions: [
+    abvLevelSelectOptions: [
         { value: "low", label: "Low"},
         { value: "med", label: "Medium"},
         { value: "high", label: "High"}
