@@ -18,6 +18,14 @@ var port = 8080;
 var app = express();
 var router = express.Router();
 
+/**
+ * Utils -- Move this to a separate file
+ */
+var isDataValidForBeerQuery = (data) => {
+    return (data.states && Array.isArray(data.states)) || 
+        (data.abvLevels && Array.isArray(data.abvLevels)) || 
+        (data.breweries && Array.isArray(data.breweries));
+}
 
 // allow localhost origin
 app.use((req, res, next) => {
@@ -30,8 +38,6 @@ app.use((req, res, next) => {
  * 
  */
 router.get("/getAllBreweries/", (request, response) => {
-    //response.header("Access-Control-Allow-Origin", "*");
-    //response.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     database.getAllBreweries((res) => {
         response.json(res);
     })
@@ -42,13 +48,26 @@ router.get("/getAllBreweries/", (request, response) => {
  */
 router.post("/getBreweriesByState/", (request, response) => {
     var data = request.body;
-    console.log(JSON.stringify(request.body));
     if (!data.statesToCheck || !Array.isArray(data.statesToCheck)){
         response.json({"Error": "An array of state abbreviations must be passed"});
     } else {
         database.getBreweriesByState(data.statesToCheck, (res) => {
             response.json(res);
         })
+    }
+})
+
+/**
+ * 
+ */
+router.post("/getBeers/", (request, response) => {
+    var data = request.body;
+    if (!isDataValidForBeerQuery(data)) {
+        response.json({"Error": "An array of at least one of the following must be passed: states, abvLevels, breweries."});
+    } else {
+        database.getBeersBasedOnParams(data.abvLevels, data.states, data.breweries, (res) => {
+            response.json(res);
+        });
     }
 })
 

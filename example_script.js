@@ -1,5 +1,0 @@
-/**
- *
- * Example script for colahacks
- *
- */
